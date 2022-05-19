@@ -1,0 +1,162 @@
+[general]
+# Log level
+#
+# debug=5, info=4, warning=3, error=2, fatal=1, panic=0
+log_level=4
+
+
+# Application Server configuration.
+[application_server]
+
+  # API configuration.
+  #
+  # This configuration is used to automatically create the:
+  #   * Device profile
+  #   * Gateways
+  #   * Application
+  #   * Devices
+  [application_server.api]
+
+  # JWT token.
+  #
+  # The JWT token to connect to the ChirpStack Application Server API. This
+  # token can be generated using the login API endpoint. In the near-future
+  # it will be possible to generate these tokens within the web-interface:
+  # https://github.com/brocaar/chirpstack-application-server/pull/421
+  jwt_token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlfa2V5X2lkIjoiNzcxMjM5MjctZjBiZS00YTA3LWJlYTAtMGRlZjU5NjJhOTEyIiwiYXVkIjoiYXMiLCJpc3MiOiJhcyIsIm5iZiI6MTY1MjkwNTY1Niwic3ViIjoiYXBpX2tleSJ9.Q7P9xgW0dxlzzPTcsZIse1NNVrFuEvqmkf9yBKI9SEM"
+
+  # Server.
+  #
+  # This must point to the external API server of the ChirpStack Application
+  # Server. When the server is running on the same machine, keep this to the
+  # default value.
+  server="10.0.0.188:8080"
+
+  # Insecure.
+  #
+  # Set this to true when the endpoint is not using TLS.
+  insecure=true
+
+
+  # MQTT integration configuration.
+  #
+  # This integration is used for counting the number of uplinks that are
+  # published by the ChirpStack Application Server integration.
+  [application_server.integration.mqtt]
+
+  # MQTT server.
+  server="tcp://10.0.0.188:1883"
+
+  # Username.
+  username=""
+
+  # Password.
+  password=""
+
+
+# Network Server configuration.
+#
+# This configuration is used to simulate LoRa gateways using the MQTT gateway
+# backend.
+[network_server]
+
+  # MQTT gateway backend.
+  [network_server.gateway.backend.mqtt]
+
+  # MQTT server.
+  server="tcp://10.0.0.188:1883"
+
+  # Username.
+  username=""
+
+  # Password.
+  password=""
+
+
+# Simulator configuration.
+#
+# Example:
+[[simulator]]
+#
+# # Service-profile ID.
+# #
+# # It is recommended to create a new organization with a new service-profile
+# # in the ChirpStack Application Server.
+ service_profile_id="bae5bdeb-fd84-411f-a795-4a68f5cdf930"
+#
+# # Duration.
+# #
+# # This defines the duration of the simulation. If set to '0s', the simulation
+# # will run until terminated. This includes the activation time.
+ duration="2m"
+#
+# # Activation time.
+# #
+# # This is the time that the simulator takes to activate the devices. This
+# # value must be less than the simulator duration.
+ activation_time="1m"
+#
+#   # Device configuration.
+[simulator.device]
+#
+#   # Number of devices to simulate.
+count=1
+#
+#   # Devices Eui's
+device_eui = [[0xb3, 0xdb, 0xe3, 0xf2, 0x50, 0xdd, 0x26, 0x78], [0xec, 0xb7, 0x08, 0x41, 0x92, 0x4a, 0x36, 0x47]]
+#
+#   # Uplink interval.
+uplink_interval="1m"
+#
+#   # FPort.
+f_port=10
+#
+#   # Payload Codec
+payload_codec="CUSTOM_JS"
+#
+#   # Payload Decoder func 
+payload_decoder = "function Decode(fPort, bytes, variables) {    var decoded={};    var data = [];    var leitura1 = {};    leitura1.value= 37.09;    leitura1.sensorId = 33605;    leitura1.name = \"Hora_da_Temperatura_Max\";    leitura1.timestamp = \"2022-05-19T18:40:00.0-0300\";    data[0] = leitura1;decoded.data = data;return decoded;}"
+#
+#   # Payload (HEX encoded).
+payload="010203"
+#
+#   # Frequency (Hz).
+frequency=868100000
+#
+#   # Bandwidth (Hz).
+bandwidth=125000
+#
+#   # Spreading-factor.
+spreading_factor=7
+#
+#   # Gateway configuration.
+[simulator.gateway]
+#
+#   # Event topic template.
+event_topic_template="gateway/{{ .GatewayID }}/event/{{ .Event }}"
+#
+#   # Command topic template.
+command_topic_template="gateway/{{ .GatewayID }}/command/{{ .Command }}"
+#
+#   # Min number of receiving gateways.
+min_count=3
+#
+#   # Max number of receiving gateways.
+max_count=5
+
+
+# Prometheus metrics configuration.
+#
+# Using Prometheus (and Grafana), it is possible to visualize various
+# simulation metrics like:
+#   * Join-Requests sent
+#   * Join-Accepts received
+#   * Uplinks sent (by the devices)
+#   * Uplinks sent (by the gateways)
+#   * Uplinks sent (by the ChirpStack Application Server MQTT integration)
+[prometheus]
+
+# IP:port to bind the Prometheus endpoint to.
+#
+# Metrics can be retrieved from /metrics.
+bind="0.0.0.0:9000"

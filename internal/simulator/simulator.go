@@ -51,9 +51,12 @@ func Start(ctx context.Context, wg *sync.WaitGroup, c config.Config) error {
 			wg:                   wg,
 			serviceProfileID:     spID,
 			deviceCount:          c.Device.Count,
+			deviceEui:            c.Device.DeviceEui,
 			activationTime:       c.ActivationTime,
 			uplinkInterval:       c.Device.UplinkInterval,
 			fPort:                c.Device.FPort,
+			payloadCodec:         c.Device.PayloadCodec,
+			payloadDecoder:       c.Device.PayloadDecoder,
 			payload:              pl,
 			frequency:            c.Device.Frequency,
 			bandwidth:            c.Device.Bandwidth / 1000,
@@ -77,11 +80,14 @@ type simulation struct {
 	wg               *sync.WaitGroup
 	serviceProfileID uuid.UUID
 	deviceCount      int
+	deviceEui        [][8]byte
 	gatewayMinCount  int
 	gatewayMaxCount  int
 	duration         time.Duration
 
 	fPort           uint8
+	payloadCodec    string
+	payloadDecoder  string
 	payload         []byte
 	activationTime  time.Duration
 	uplinkInterval  time.Duration
@@ -322,12 +328,14 @@ func (s *simulation) setupDeviceProfile() error {
 
 	resp, err := as.DeviceProfile().Create(context.Background(), &api.CreateDeviceProfileRequest{
 		DeviceProfile: &api.DeviceProfile{
-			Name:              dpName.String(),
-			OrganizationId:    s.serviceProfile.OrganizationId,
-			NetworkServerId:   s.serviceProfile.NetworkServerId,
-			MacVersion:        "1.0.3",
-			RegParamsRevision: "B",
-			SupportsJoin:      true,
+			Name:                 dpName.String(),
+			OrganizationId:       s.serviceProfile.OrganizationId,
+			NetworkServerId:      s.serviceProfile.NetworkServerId,
+			MacVersion:           "1.0.3",
+			RegParamsRevision:    "B",
+			SupportsJoin:         true,
+			PayloadCodec:         s.payloadCodec,
+			PayloadDecoderScript: s.payloadDecoder,
 		},
 	})
 	if err != nil {
@@ -395,13 +403,15 @@ func (s *simulation) tearDownApplication() error {
 func (s *simulation) setupDevices() error {
 	log.Info("simulator: init devices")
 
-	for i := 0; i < s.deviceCount; i++ {
+	for i := 0; i < len(s.deviceEui); i++ {
 		var devEUI lorawan.EUI64
 		var appKey lorawan.AES128Key
+		devEUI = s.deviceEui[i]
 
-		if _, err := rand.Read(devEUI[:]); err != nil {
-			return err
-		}
+		// if _, err := rand.Read(devEUI[:]); err != nil {
+		// 	return err
+		// }
+
 		if _, err := rand.Read(appKey[:]); err != nil {
 			return err
 		}

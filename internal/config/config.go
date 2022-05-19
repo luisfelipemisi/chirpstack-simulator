@@ -48,8 +48,11 @@ type Config struct {
 
 		Device struct {
 			Count           int           `mapstructure:"count"`
+			DeviceEui       [][8]byte     `mapstructure:"device_eui"`
 			UplinkInterval  time.Duration `mapstructure:"uplink_interval"`
 			FPort           uint8         `mapstructure:"f_port"`
+			PayloadCodec    string        `mapstructure:"payload_codec"`
+			PayloadDecoder  string        `mapstructure:"payload_decoder"`
 			Payload         string        `mapstructure:"payload"`
 			Frequency       int           `mapstructure:"frequency"`
 			Bandwidth       int           `mapstructure:"bandwidth"`
